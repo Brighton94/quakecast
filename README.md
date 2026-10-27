@@ -1,0 +1,41 @@
+# quakecast
+
+Prospective earthquake forecasting for California (and Italy, Japan, New Zealand), scored the way CSEP scores models. The goal is an ML model that beats ETAS on forecasts committed before the outcome is known.
+
+## Quick start
+
+Open the folder in VS Code and choose **Reopen in Container**. The container installs everything with `uv sync`. Then:
+
+```bash
+uv run quakecast fetch --start 2018-01-01 --min-mag 3.0
+uv run quakecast forecast data/california_comcat.parquet --days 7
+uv run quakecast verify commitments/<file>.json
+uv run quakecast score commitments/<file>.json data/california_comcat.parquet
+```
+
+`score` refuses to run until the catalog covers the whole window, so refetch after the window closes.
+
+## Workflow for a verifiable result
+
+1. Fit and commit a forecast before the window opens. The JSON in `commitments/` holds the forecast and its SHA-256 hash.
+2. Commit that file to git and push, and post the hash publicly (LinkedIn, a tweet). Either gives you an independent timestamp.
+3. After the window closes, refetch ComCat and run `score`. Anyone can rerun `verify` to confirm the forecast was not edited.
+4. Report the N-test, Poisson log score and Brier score, and the information gain of your model over ETAS on the same windows.
+
+## Layout
+
+| Path | Purpose |
+| --- | --- |
+| `src/quakecast/catalog.py` | ComCat download via pyCSEP, regions, parquet I/O |
+| `src/quakecast/etas.py` | Temporal ETAS likelihood, MLE fit, b-value, forecasts |
+| `src/quakecast/evaluate.py` | N-test, Poisson log score, Brier score, information gain |
+| `src/quakecast/commit.py` | Hash commitments and verification |
+| `src/quakecast/cli.py` | `quakecast` command |
+| `notebooks/` | Executed exploration notebooks |
+| `commitments/` | Tracked in git; `data/` and `forecasts/` are not |
+
+## Baseline notes
+
+ETAS v0 is temporal only and its forecast counts triggering from events before the window, not cascades inside it, so it underestimates rates right after a large shock. Next steps are a spatio-temporal ETAS with gridded output in pyCSEP format, then the ML model on top.
+
+The CSEP ten-year California next-day forecast benchmark is on Zenodo; score against those models with pyCSEP's gridded tests once forecasts are gridded.

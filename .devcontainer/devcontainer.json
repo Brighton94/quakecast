@@ -1,0 +1,28 @@
+{
+  "name": "quakecast",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "vscode",
+  "postCreateCommand": "uv sync --all-groups && uv run python -m ipykernel install --user --name quakecast",
+  "containerEnv": {
+    "UV_PROJECT_ENVIRONMENT": "/home/vscode/.venv"
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/home/vscode/.venv/bin/python",
+        "python.testing.pytestEnabled": true,
+        "editor.formatOnSave": true,
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff"
+        }
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "charliermarsh.ruff"
+      ]
+    }
+  }
+}
