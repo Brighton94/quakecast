@@ -1,6 +1,14 @@
 # quakecast
 
-Prospective earthquake forecasting for California (and Italy, Japan, New Zealand), scored the way CSEP scores models. The goal is an ML model that beats ETAS on forecasts committed before the outcome is known.
+Earthquake physics + ML: prospective earthquake forecasting for California (and Italy, Japan, New Zealand), scored the way CSEP scores models. The goal is a physics-informed ML model that beats ETAS on forecasts committed before the outcome is known.
+
+## Why ETAS is the bar
+
+The Epidemic-Type Aftershock Sequence (ETAS) model is a statistical model built on two empirical laws of earthquake physics: the Omori–Utsu decay of aftershock rates in time, and Gutenberg–Richter magnitude scaling, with every event able to trigger its own aftershocks. It has a handful of parameters and has been the standard short-term forecasting model for decades.
+
+**Almost no ML model beats it.** Deep-learning and neural point-process forecasters regularly look good in papers, but when they are compared with ETAS on the same catalogs, windows and likelihood scores, they mostly match it or fall short. The EarthquakeNPP benchmark (Stockman, Lawson and Werner, 2024) tested five neural point processes against ETAS on its benchmark catalogs and found none outperformed ETAS. The few reported wins are retrospective, on a single region, or not scored with CSEP's tests.
+
+That is why quakecast keeps ETAS as the baseline, puts the physics into the ML model rather than replacing it, and only counts a result if it shows positive information gain over ETAS on forecasts committed before the outcome.
 
 ## Quick start
 
