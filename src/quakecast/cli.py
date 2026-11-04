@@ -21,8 +21,14 @@ def _utc(s: str) -> datetime:
 def cmd_fetch(args: argparse.Namespace) -> None:
     """Download a regional ComCat catalog to parquet."""
     region = catalog.REGIONS[args.region]
-    df = catalog.fetch_comcat(_utc(args.start), _utc(args.end), region, args.min_mag)
-    path = catalog.save(df, args.out or f"data/{region.name}_comcat.parquet")
+    start, end = _utc(args.start), _utc(args.end)
+    if args.full:
+        df = catalog.fetch_fdsn(start, end, region, args.min_mag)
+        default = f"data/{region.name}_comcat_full.parquet"
+    else:
+        df = catalog.fetch_comcat(start, end, region, args.min_mag)
+        default = f"data/{region.name}_comcat.parquet"
+    path = catalog.save(df, args.out or default)
     print(f"{len(df)} events -> {path}")
 
 
@@ -102,6 +108,9 @@ def main() -> None:
     f.add_argument("--end", default=datetime.now(UTC).date().isoformat())
     f.add_argument("--min-mag", type=float, default=2.5)
     f.add_argument("--out")
+    f.add_argument(
+        "--full", action="store_true", help="keep every ComCat column (ids, magType, quality)"
+    )
     f.set_defaults(func=cmd_fetch)
 
     fc = sub.add_parser("forecast", help="fit ETAS and commit a forecast")
