@@ -21,6 +21,15 @@ uv run quakecast verify commitments/<file>.json
 uv run quakecast score commitments/<file>.json data/california_comcat.parquet
 ```
 
+For exploratory analysis, fetch every ComCat column (ids, magnitude type, location quality, event type) and print the headline statistics:
+
+```bash
+uv run quakecast fetch --full --start 1985-01-01 --min-mag 2.5
+uv run quakecast eda data/california_comcat_full.parquet --m0 3.0
+```
+
+`notebooks/02_eda.ipynb` is the full analysis: column descriptions, missing values, outliers, skewness, completeness and b-value, overdispersion, heteroskedasticity, seasonality, Omori decay and feature-target correlations. Its main finding is that declustered seismicity is Poisson with no seasonality, so the forecastable signal is the triggered (aftershock) part that ETAS already models.
+
 `score` refuses to run until the catalog covers the whole window, so refetch after the window closes.
 
 ## Workflow for a verifiable result
@@ -34,10 +43,13 @@ uv run quakecast score commitments/<file>.json data/california_comcat.parquet
 
 | Path | Purpose |
 | --- | --- |
-| `src/quakecast/catalog.py` | ComCat download via pyCSEP, regions, parquet I/O |
+| `src/quakecast/catalog.py` | ComCat download (pyCSEP, or full FDSN columns), column descriptions, regions, parquet I/O |
 | `src/quakecast/etas.py` | Temporal ETAS likelihood, MLE fit, b-value, forecasts |
 | `src/quakecast/evaluate.py` | N-test, Poisson log score, Brier score, information gain |
 | `src/quakecast/commit.py` | Hash commitments and verification |
+| `src/quakecast/eda.py` | EDA helpers: data quality, Mc and b-value, declustering, Omori fits, stationarity, heteroskedasticity, seasonality |
+| `src/quakecast/plots.py` | Shared plot style and EDA plots |
+| `scripts/build_eda_notebook.py` | Generates `notebooks/02_eda.ipynb` |
 | `src/quakecast/cli.py` | `quakecast` command |
 | `notebooks/` | Executed exploration notebooks |
 | `commitments/` | Tracked in git; `data/` and `forecasts/` are not |
