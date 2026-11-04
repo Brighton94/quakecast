@@ -10,7 +10,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from quakecast import catalog, commit, etas, evaluate
+from quakecast import catalog, commit, eda, etas, evaluate
 
 
 def _utc(s: str) -> datetime:
@@ -30,6 +30,16 @@ def cmd_fetch(args: argparse.Namespace) -> None:
         default = f"data/{region.name}_comcat.parquet"
     path = catalog.save(df, args.out or default)
     print(f"{len(df)} events -> {path}")
+
+
+def cmd_eda(args: argparse.Namespace) -> None:
+    """Print headline EDA statistics for a catalog and optionally save them as JSON."""
+    report = eda.summary_report(catalog.load(args.catalog), args.m0)
+    text = json.dumps(report, indent=2, default=str)
+    print(text)
+    if args.out:
+        Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.out).write_text(text + "\n")
 
 
 def cmd_forecast(args: argparse.Namespace) -> None:
@@ -112,6 +122,12 @@ def main() -> None:
         "--full", action="store_true", help="keep every ComCat column (ids, magType, quality)"
     )
     f.set_defaults(func=cmd_fetch)
+
+    e = sub.add_parser("eda", help="summary statistics for a catalog")
+    e.add_argument("catalog")
+    e.add_argument("--m0", type=float, default=3.0)
+    e.add_argument("--out", help="also write the report as JSON")
+    e.set_defaults(func=cmd_eda)
 
     fc = sub.add_parser("forecast", help="fit ETAS and commit a forecast")
     fc.add_argument("catalog")
